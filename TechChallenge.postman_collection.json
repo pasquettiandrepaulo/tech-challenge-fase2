@@ -1,0 +1,381 @@
+{
+	"info": {
+		"_postman_id": "8ec1afc1-e3b9-47a3-a4be-6a015ae74acf",
+		"name": "Tech Challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15348614"
+	},
+	"item": [
+		{
+			"name": "Local",
+			"item": [
+				{
+					"name": "Product",
+					"item": [
+						{
+							"name": "POST - Send product",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\" : \"Pepsy zero Lata 350ML\",\n    \"description\": \"Pepsy zero açucar 350MLs\",\n    \"category\": \"DRINK\",\n    \"price\": 6.90,\n    \"images\": [\n        \"http://localimage.com.br\",\n        \"http://image.com.br\"\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/product",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"product"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT - Update product",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\" : \"Hamburguer suprasumo\",\n    \"description\": \"Queijo, Hamburguer, Cheader, Salada, Tomate, Bacon\",\n    \"category\": \"SNACK\",\n    \"price\": 36.50,\n    \"images\": [\n        \"http://localimage.com.br\",\n        \"http://image.com.br\"\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/product/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"product",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "683cf66938ec6f7b0905feaa"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE - Delete product",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/product/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"product",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "683cdf62523dfed5ba90c9be"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET -  Product by category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\" : \"Hamburguer suprasumo\",\n    \"description\": \"Queijo, Hamburguer, Cheader, Salada, Tomate, Bacon\",\n    \"category\": \"SNACK\",\n    \"price\": 32.50,\n    \"images\": [\n        \"http://localimage.com.br\",\n        \"http://image.com.br\"\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/product?category=SNACK",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"product"
+									],
+									"query": [
+										{
+											"key": "category",
+											"value": "SNACK"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Order",
+					"item": [
+						{
+							"name": "GET - Order",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/v1/order",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"order"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST - Send order",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"clientId\": \"{{$guid}}\",\n    \"products\": [\n        {\n            \"id\": \"683cf66938ec6f7b0905feaa\",\n            \"quantity\": 2,\n            \"observation\": \"obs sem alfaçe\"\n        },\n        {\n            \"id\": \"683e50d9f0bce267de1c493c\",\n            \"quantity\": 1,\n            \"observation\": \"\"\n        },\n        {\n            \"id\": \"683e514cf0bce267de1c493e\",\n            \"quantity\": 1,\n            \"observation\": \"\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/order",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"order"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT - Change order status",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"IN_PREPARATION\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/order/:id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"order",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "683e51acf0bce267de1c493f"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Client",
+					"item": [
+						{
+							"name": "POST - Save client",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cpf\": \"1910000000\",\n    \"name\": \"Aleatóriano de Corda\",\n    \"email\": \"aleatorianocodda@gmail.com\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/client",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"client"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET - By cpf",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cpf\": \"1910000000\",\n    \"name\": \"Aleatóriano de Corda\",\n    \"email\": \"aleatorianocodda@gmail.com\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/client/:cpf",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"client",
+										":cpf"
+									],
+									"variable": [
+										{
+											"key": "cpf",
+											"value": "02333322014"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Payment",
+					"item": [
+						{
+							"name": "GET - Generate Payment",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/v1/payment/:orderId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"payment",
+										":orderId"
+									],
+									"variable": [
+										{
+											"key": "orderId",
+											"value": "683fc015bd46857617ab78c5"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST - Pay payment",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/v1/payment/:orderId",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"payment",
+										":orderId"
+									],
+									"variable": [
+										{
+											"key": "orderId",
+											"value": "683fc015bd46857617ab78c5"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}
