@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
@@ -22,15 +20,13 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponseDTO save(ClientRequestDTO clientRequestDTO) {
-        ClientDocument clientDocumentFilter = clientMapper.clientRequestDTOToClientDocument(clientRequestDTO);
-        Example<ClientDocument> clientDocumentExample = Example.of(clientDocumentFilter);
-        Optional<ClientDocument> clientDocumentOptionalFilter = clientRepository.findOne(clientDocumentExample);
-        if (clientDocumentOptionalFilter.isPresent()) {
-            return clientMapper.clientDocumentToClientResponseDTO(clientDocumentOptionalFilter.get());
-        }
-        ClientDocument clientDocument = clientMapper.clientRequestDTOToClientDocument(clientRequestDTO);
-        ClientDocument clientDocumentSaved = clientRepository.save(clientDocument);
-        return clientMapper.clientDocumentToClientResponseDTO(clientDocumentSaved);
+        ClientDocument doc = clientMapper.clientRequestDTOToClientDocument(clientRequestDTO);
+        return clientRepository.findOne(Example.of(doc))
+                .map(clientMapper::clientDocumentToClientResponseDTO)
+                .orElseGet(() -> {
+                    ClientDocument saved = clientRepository.save(doc);
+                    return clientMapper.clientDocumentToClientResponseDTO(saved);
+                });
     }
 
     @Override

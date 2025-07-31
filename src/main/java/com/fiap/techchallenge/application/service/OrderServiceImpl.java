@@ -5,6 +5,8 @@ import com.fiap.techchallenge.adapter.in.controller.dto.request.order.OrderReque
 import com.fiap.techchallenge.adapter.in.controller.dto.request.order.OrderStatusRequestDTO;
 import com.fiap.techchallenge.adapter.in.controller.dto.response.order.OrderResponseDTO;
 import com.fiap.techchallenge.adapter.mapper.OrderMapper;
+import com.fiap.techchallenge.application.enumerate.ApplicationRuleMessage;
+import com.fiap.techchallenge.application.exception.ApplicationException;
 import com.fiap.techchallenge.application.port.in.OrderService;
 import com.fiap.techchallenge.application.port.out.OrderRepository;
 import com.fiap.techchallenge.application.port.out.ProductRepository;
@@ -13,9 +15,12 @@ import com.fiap.techchallenge.domain.document.ProductDocument;
 import com.fiap.techchallenge.domain.dto.ProductOrderDTO;
 import com.fiap.techchallenge.domain.enumerate.OrderStatus;
 import com.fiap.techchallenge.domain.enumerate.PaymentStatus;
+import com.fiap.techchallenge.domain.exception.BusinessException;
+import com.fiap.techchallenge.domain.service.OrderDomainService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.types.ObjectId;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,11 +38,12 @@ public class OrderServiceImpl implements OrderService {
 
     private final ProductRepository productRepository;
 
+    private final OrderDomainService orderDomainService;
+
     @Override
     public OrderResponseDTO processOrder(OrderRequestDTO orderRequest) {
        List<ProductOrderDTO> products = orderRequest.getProducts().stream().map(this::getProductOrderDTO).toList();
-       double totalValue = getTotalValue(products);
-       return orderMapper.orderDocumentToOrderResponseDTO(saveOrder(orderRequest, totalValue, products));
+       return orderMapper.orderDocumentToOrderResponseDTO(saveOrder(orderRequest, products));
     }
 
     @Override
@@ -50,38 +56,42 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDTO changeOrderStatus(String id, OrderStatusRequestDTO orderStatusRequestDTO) {
-        Optional<OrderDocument> orderDocument = orderRepository.findById(new ObjectId(id));
-        if (orderDocument.isEmpty()){
-            return null;
+        try {
+            Optional<OrderDocument> orderDocument = orderRepository.findById(new ObjectId(id));
+            if (orderDocument.isEmpty()){
+                throw new ApplicationException(HttpStatus.NOT_FOUND.value(), String.format(ApplicationRuleMessage.ORDER_NOT_FOUND_ERROR.getMessage(), id));
+            }
+            orderDomainService.changeOrderStatus(orderDocument.get(), orderStatusRequestDTO.getStatus());
+            OrderDocument savedOrder = orderRepository.save(orderDocument.get());
+            return orderMapper.orderDocumentToOrderResponseDTO(savedOrder);
+        } catch (Exception ex) {
+            if (ex instanceof ApplicationException || ex instanceof BusinessException) {
+                throw ex;
+            }
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         }
-        orderDocument.get().setStatus(orderStatusRequestDTO.getStatus());
-        OrderDocument savedOrder = orderRepository.save(orderDocument.get());
-        return orderMapper.orderDocumentToOrderResponseDTO(savedOrder);
-    }
-
-    private static double getTotalValue(List<ProductOrderDTO> products) {
-        return products.stream().mapToDouble(product -> product.getPrice().multiply(BigDecimal.valueOf(product.getQuantity())).doubleValue()).sum();
     }
 
     private ProductOrderDTO getProductOrderDTO(OrderProductRequestDTO orderProductRequestDTO) {
-        Optional<ProductDocument> productDocumentOptional = productRepository.findById(new ObjectId(orderProductRequestDTO.getId()));
-        if (productDocumentOptional.isEmpty()) {
-            return null;
+        try {
+            Optional<ProductDocument> productDocumentOptional = productRepository.findById(new ObjectId(orderProductRequestDTO.getId()));
+            if (productDocumentOptional.isEmpty()) {
+                throw new ApplicationException(HttpStatus.NOT_FOUND.value(), String.format(ApplicationRuleMessage.PRODUCT_NOT_FOUND_MESSAGE.getMessage(), orderProductRequestDTO.getId()));
+            }
+            ProductOrderDTO productOrderDTO = orderMapper.productDocumentToProductOrderDTO(productDocumentOptional.get());
+            productOrderDTO.setQuantity(orderProductRequestDTO.getQuantity());
+            productOrderDTO.setObservation(orderProductRequestDTO.getObservation());
+            return productOrderDTO;
+        } catch (Exception ex) {
+            if (ex instanceof ApplicationException) {
+                throw ex;
+            }
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         }
-        ProductOrderDTO productOrderDTO = orderMapper.productDocumentToProductOrderDTO(productDocumentOptional.get());
-        productOrderDTO.setQuantity(orderProductRequestDTO.getQuantity());
-        productOrderDTO.setObservation(orderProductRequestDTO.getObservation());
-        return productOrderDTO;
     }
 
-    private OrderDocument saveOrder(OrderRequestDTO orderRequest, double totalValue, List<ProductOrderDTO> products) {
-        OrderDocument orderDocument = new OrderDocument();
-        orderDocument.setStatus(OrderStatus.WAITING_PAYMENT);
-        orderDocument.setPaymentStatus(PaymentStatus.UNDEFINED);
-        orderDocument.setClientId(orderRequest.getClientId());
-        orderDocument.setOrderNumber(RandomStringUtils.randomAlphanumeric(5).toUpperCase());
-        orderDocument.setAmount(BigDecimal.valueOf(totalValue));
-        orderDocument.setProducts(products);
+    private OrderDocument saveOrder(OrderRequestDTO orderRequest, List<ProductOrderDTO> products) {
+        OrderDocument orderDocument = orderDomainService.initializeOrder(orderRequest, products);
         return orderRepository.save(orderDocument);
     }
 }

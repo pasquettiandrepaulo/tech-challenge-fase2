@@ -3,6 +3,8 @@ package com.fiap.techchallenge.application.service;
 import com.fiap.techchallenge.adapter.in.controller.dto.request.product.ProductRequestDTO;
 import com.fiap.techchallenge.adapter.in.controller.dto.response.product.ProductResponseDTO;
 import com.fiap.techchallenge.adapter.mapper.ProductMapper;
+import com.fiap.techchallenge.application.enumerate.ApplicationRuleMessage;
+import com.fiap.techchallenge.application.exception.ApplicationException;
 import com.fiap.techchallenge.application.port.in.ProductService;
 import com.fiap.techchallenge.application.port.out.ProductRepository;
 import com.fiap.techchallenge.domain.document.ProductDocument;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,22 +48,36 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponseDTO update(String id, ProductRequestDTO productRequestDTO) {
-        Optional<ProductDocument> productDocumentOptional = productRepository.findById(new ObjectId(id));
-        if (productDocumentOptional.isEmpty()) {
-            return null;
+        try{
+            Optional<ProductDocument> productDocumentOptional = productRepository.findById(new ObjectId(id));
+            if (productDocumentOptional.isEmpty()) {
+                throw new ApplicationException(HttpStatus.NOT_FOUND.value(), String.format(ApplicationRuleMessage.PRODUCT_NOT_FOUND_MESSAGE.getMessage(), id));
+            }
+            ProductDocument productDocument = productDocumentOptional.get();
+            productMapper.productRequestDTOToProductDocument(productRequestDTO, productDocument);
+            ProductDocument productDocumentSaved = productRepository.save(productDocument);
+            return productMapper.productDocumentToProductResponseDTO(productDocumentSaved);
+        } catch (Exception ex) {
+            if (ex instanceof ApplicationException) {
+                throw ex;
+            }
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         }
-        ProductDocument productDocument = productDocumentOptional.get();
-        productMapper.productRequestDTOToProductDocument(productRequestDTO, productDocument);
-        ProductDocument productDocumentSaved = productRepository.save(productDocument);
-        return productMapper.productDocumentToProductResponseDTO(productDocumentSaved);
     }
 
     @Override
     public void delete(String id) {
-        Optional<ProductDocument> productDocumentOptional = productRepository.findById(new ObjectId(id));
-        if (productDocumentOptional.isEmpty()) {
-            log.error("ProductServiceImpl.delete: Error on delete: [{id}]", id);
+        try {
+            Optional<ProductDocument> productDocumentOptional = productRepository.findById(new ObjectId(id));
+            if (productDocumentOptional.isEmpty()) {
+                throw new ApplicationException(HttpStatus.NOT_FOUND.value(), String.format(ApplicationRuleMessage.PRODUCT_NOT_FOUND_MESSAGE.getMessage(), id));
+            }
+            productRepository.deleteById(new ObjectId(id));
+        } catch (Exception ex) {
+            if (ex instanceof ApplicationException) {
+                throw ex;
+            }
+            throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         }
-        productRepository.deleteById(new ObjectId(id));
     }
 }

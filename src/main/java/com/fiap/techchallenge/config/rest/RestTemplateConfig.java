@@ -1,4 +1,4 @@
-package com.fiap.techchallenge.config;
+package com.fiap.techchallenge.config.rest;
 
 
 import org.springframework.context.annotation.Bean;
